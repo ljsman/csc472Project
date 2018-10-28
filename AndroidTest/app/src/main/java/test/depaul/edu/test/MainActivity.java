@@ -2,6 +2,7 @@ package test.depaul.edu.test;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -66,8 +67,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view)
             {
+                // send a request and wait for response
                 Message msg = new Message(ServerInterface.RequestType.GetGamesList);
-                GameClient.SendMessage(msg);
+                GameClient.SendMessage(msg, new GameClient.OnMessageListener() {
+                    @Override
+                    public void onReceivedMessage(Message msg) {
+                        Log.v("MainActivity", "get gamelist: "+msg.getJSONString());
+                    }
+                });
             }
         });
 
@@ -94,6 +101,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        // add listener
+        GameClient.AddListener(ServerInterface.ResponseType.UpdatePlayersInformation, new GameClient.OnMessageListener() {
+            @Override
+            public void onReceivedMessage(Message msg) {
+                Log.v("MainActivity", "get players list: "+msg.getJSONString());
+            }
+        });
     }
 
     @Override
