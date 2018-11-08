@@ -6,7 +6,7 @@ const separator = ";"
 const server = net.createServer(function(sock) {
     console.log("connected: " + sock.remoteAddress + ":" + sock.remotePort)
     
-    sock.setEncoding('utf8');
+    sock.setEncoding('utf8')
 
     let buffer = ""
     sock.on('data', function(data) {
@@ -32,13 +32,13 @@ const server = net.createServer(function(sock) {
         	separatorIdx = buffer.indexOf(separator, lastIdx+1)
         }
         if(lastIdx != -1) buffer = buffer.slice(lastIdx+1)
-    });
+    })
     
     sock.on('close', function(data) {
         console.log("disconnected: " + sock.remoteAddress + ":" + sock.remotePort)
         buffer = ""
         unregisterUser(getUserIdentifier(sock))
-    });
+    })
 })
 
 server.listen(port, () => {
@@ -177,7 +177,7 @@ addHandler(2, (identifier, msg, sock) => {
 		game_name: "game1",
 		werewolf_count: 2,
 		villager_count: 5,
-		other_roles: 0,		//0b1: Seer, 0b10: xxx, ...
+		other_roles: 0,		//0b1: Werewolf, 0b10: villager, 0b100: Seer, 0b1000: xxx, ...
 	}
 */ 
 addHandler(3, (identifier, msg) => {
@@ -239,13 +239,24 @@ function unregisterUser(identifier) {
 	delete users[identifier]
 }
 
+function shuffleArray(a) {
+    var j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
+    }
+    return a;
+}
+
 /* game class
 {
 	config: {
 		game_name: "game1",
 		werewolf_count: 2,
 		villager_count: 5,
-		other_roles: [1],		//1: Seer
+		other_roles: 1,		//0b1: Werewolf, 0b10: villager, 0b100: Seer, 0b1000: xxx, ...
 		total_count: 8,
 		creator: "1.1.1.1:1234",
 	},
@@ -253,11 +264,13 @@ function unregisterUser(identifier) {
 	players: [
 		{
 			identifier: "1.1.1.1:1234",
+			role: 0b1,
+			status: 0, //0: alive, 1: died
 		},
-		{
-			...
-		},
-	]
+		...,
+	],
+	currentPhase: 0,
+	phases:[0, 1, 2, 3, 5],	// phase ids
 }
 */
 function Game(game_id, identifier, msg) {
@@ -377,4 +390,232 @@ Game.prototype.getPlayersInformation = function() {
 			}
 		}
 	})
+}
+
+Game.prototype.getRolesInformation = function() {
+	return this.players.map((item, index) => {
+		if(item === null) return null
+		else {
+			const user = users[item.identifier]
+			return {
+				role: user.role
+			}
+		}
+	})
+}
+
+Game.prototype.getPlayersStatus = function() {
+	return this.players.map((item, index) => {
+		if(item === null) return null
+		else {
+			const user = users[item.identifier]
+			return {
+				status: user.status
+			}
+		}
+	})
+}
+
+/* return type 103
+{
+	roles:[
+		{
+			role: 1
+		},
+		...
+	]
+}
+*/ 
+Game.prototype.startGame = function() {
+	// random roles 
+	let roles = []
+	for(let i=0; i<this.config.werewolf_count; i++) roles.push(0b1)
+	for(let i=0; i<this.config.villager_count; i++) roles.push(0b10)
+	let others = this.config.other_roles
+	if(others > 0) {
+		// TODO hardcode
+		roles.push(0b100)
+	}
+
+	shuffleArray(roles)
+	for (let i = roles.length - 1; i >= 0; i--) {
+		this.players[i].role = roles[i]
+	}
+	// create phases TODO: hardcode
+	this.phases = [2,3,1,4,1]
+
+	// send to clients and start game
+	const msg = {
+		roles: this.getRolesInformation()
+	}
+	this.broadcast(103, msg)
+	this.currentPhase = -1
+	this.gotoNextPhase()
+}
+
+Game.prototype.checkGameStatus = function() {
+	let hasWolfwere = false
+	let hasHuman = false
+	for(let i=0; i<this.players.length; i++) {
+		if(this.players[i].status === 0) {
+			if(this.players[i].role === 0b1) {
+				if(hasWolfwere === false) hasWolfwere = true
+			}
+			else {
+				if(hasHuman === false) hasHuman = true
+			}
+		}
+	}
+	if(hasWolfwere === false) this.endGame(1)
+	if(hasHuman === false) this.endGame(0)
+}
+
+/* return type 104
+{
+	winner: 0, // 0: wolfwere win, 1: human win
+}
+*/ 
+Game.prototype.endGame = function(winner) {// 0: wolfwere win, 1: human win
+	this.status = 2
+	const msg = {
+		winner: winner
+	}
+	this.broadcast(104, msg)
+}
+
+Game.prototype.process = function(userIdentifier, msg) {
+	if(this.status != 1) {
+		console.log("ERROR: game hasn't been started")
+		return
+	}
+	const phaseId = this.phases[this.currentPhase]
+	if(!phaseHandlers[phaseId]) {
+		console.log("ERROR: phase handler doesn't exist #"+phaseId)
+		return
+	}
+	phaseHandlers[phaseId].process(this, userIdentifier, msg)
+}
+
+Game.prototype.gotoNextPhase = function() {
+	if(this.phases.length == 0) return //should never happen
+	this.currentPhase++
+	if(this.currentPhase >= this.phases.length) this.currentPhase = 0
+
+	const phaseId = this.phases[this.currentPhase]
+	if(!phaseHandlers[phaseId]) {
+		console.log("ERROR: phase handler doesn't exist #"+phaseId)
+		return
+	}
+	phaseHandlers[phaseId].enter(this)
+}
+
+Game.prototype.kill = function(pos) {
+	if(this.players[pos].status === 1) console.log("ERROR: try to kill a died man #"+pos)
+	this.players[pos].status = 1
+}
+
+// phase handlers
+let phaseHandlers = {}
+
+// phase 1: check game status
+phaseHandlers[1] = {
+	enter: (game)=> {
+		game.checkGameStatus()
+		if(game.status === 1) game.gotoNextPhase()
+	},
+	process: (game, userIdentifier, msg)=> {
+		// empty
+	}
+}
+
+// phase 2: wolfwere
+phaseHandlers[2] = {
+	/* return type 105
+	{
+		leader: 0,	// player position
+	}
+	*/
+	enter: (game)=> {
+		const msg = {
+			leader: game.players.findIndex((player)=> {	// find first wolfwere
+				return player.role === 0b1
+			}),
+		}
+		game.broadcast(105, msg)
+	},
+	/* type 6, wolfwere kill human
+		{
+			...
+			target: 1,	// player position
+		}
+	*/ 
+	process: (game, userIdentifier, msg)=> {
+		game.kill(msg.target)
+		game.gotoNextPhase()
+	}
+}
+
+// phase 3: seer
+phaseHandlers[3] = {
+	/* return type 106
+	{
+	}
+	*/
+	enter: (game)=> {
+		const msg = {}
+		game.broadcast(106, msg)
+	},
+	/* type 7, go to next turn
+		{
+			...
+		}
+	*/ 
+	process: (game, userIdentifier, msg)=> {
+		game.gotoNextPhase()
+	}
+}
+
+// phase 4: discussion
+phaseHandlers[3] = {
+	/* return type 107
+	{
+		leader: 0,	// player position
+		playersStatus: [
+			{
+				status: 0,	
+			},
+			...
+		]
+	}
+	*/
+	enter: (game)=> {
+		const msg = {
+			leader: 0,	// always the creator
+			playersStatus: game.getPlayersStatus()
+		}
+		game.broadcast(107, msg)
+	},
+	/* type 8, vote to kill
+		{
+			...
+			target: 1,	// player position
+		}
+	*/ 
+	/* return type 108
+	{
+		playersStatus: [
+			{
+				status: 0,	
+			},
+			...
+		]
+	}
+	*/
+	process: (game, userIdentifier, msg)=> {
+		game.kill(msg.target)
+		const msg = {
+			playersStatus: game.getPlayersStatus()
+		}
+		game.broadcast(108, msg)
+	}
 }
