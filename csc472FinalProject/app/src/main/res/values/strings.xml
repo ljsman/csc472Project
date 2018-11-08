@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">CSC472FinalProject</string>
+    <string name="defaultAvatorName">Please Enter a Name</string>
+    <string name="defaultName">Please Enter Your Name</string>
+</resources>
