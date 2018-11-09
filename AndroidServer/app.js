@@ -613,9 +613,9 @@ phaseHandlers[3] = {
 	*/
 	process: (game, userIdentifier, msg)=> {
 		game.kill(msg.target)
-		const msg = {
+		const res = {
 			playersStatus: game.getPlayersStatus()
 		}
-		game.broadcast(108, msg)
+		game.broadcast(108, res)
 	}
 }
