@@ -71,14 +71,30 @@ public class GamePlayingView extends LinearLayout {
         final TextView textState = findViewById(R.id.textState);
         final TextView textRole = findViewById(R.id.textRole);
 
-        final Button btnStart= findViewById(R.id.btnStart);
-        btnStart.setOnClickListener(new View.OnClickListener()
+        final Button btnStart = findViewById(R.id.btnStart);
+        if(myPosition == 0) {// game owner is always at position 0
+            btnStart.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View view)
+                {
+                    Message msg = new Message(ServerInterface.RequestType.StartGame);
+                    GameClient.SendMessage(msg);
+                }
+            });
+        }
+        else {
+            btnStart.setVisibility(GONE);
+        }
+
+        final Button btnExit = findViewById(R.id.btnExit);
+        btnExit.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
-                Message msg = new Message(ServerInterface.RequestType.StartGame);
-                GameClient.SendMessage(msg);
+                GameClient.RemoveAllListner();
+                activity.popView();
             }
         });
 
@@ -100,7 +116,7 @@ public class GamePlayingView extends LinearLayout {
         GameClient.AddListener(ServerInterface.ResponseType.GameStart, new GameClient.OnMessageListener() {
             @Override
             public void onReceivedMessage(Message msg) {
-                btnStart.setVisibility(INVISIBLE);
+                btnStart.setVisibility(GONE);
                 textState.setText("Game Start");
                 try {
                     updateRoleInformation(msg.jsonObj.getJSONArray("roles"));

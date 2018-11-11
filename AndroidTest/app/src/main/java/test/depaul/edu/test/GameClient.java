@@ -37,6 +37,10 @@ public class GameClient implements IServerConnectorListener {
         instance.removeListener(listener);
     }
 
+    public static void RemoveAllListner() {
+        instance.removeAllListener();
+    }
+
     private void connect() {
         if(connector == null) {
             connector = new ServerConnector(this);
@@ -80,6 +84,10 @@ public class GameClient implements IServerConnectorListener {
         for ( ArrayList<OnMessageListener> list : typeListeners.values()) {
             list.remove(listener);
         }
+    }
+
+    private void removeAllListener() {
+        typeListeners.clear();
     }
 
     private Handler heartbeat = new Handler();

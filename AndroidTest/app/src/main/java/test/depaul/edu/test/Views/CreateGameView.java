@@ -64,5 +64,13 @@ public class CreateGameView extends LinearLayout {
                 });
             }
         });
+
+        Button btnGoBack = findViewById(R.id.btnGoBack);
+        btnGoBack.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                activity.popView();
+            }
+        });
     }
 }

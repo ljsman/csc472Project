@@ -39,6 +39,12 @@
         android:id="@+id/btnStart"
         android:text="Start Game"/>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnExit"
+        android:text="Exit Game"/>
+
 
 
 
