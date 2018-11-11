@@ -78,8 +78,21 @@ public class GamePlayingView extends LinearLayout {
                 @Override
                 public void onClick(View view)
                 {
-                    Message msg = new Message(ServerInterface.RequestType.StartGame);
-                    GameClient.SendMessage(msg);
+                    boolean hasEmpty = false;
+                    for(Player player : playerList) {
+                        if(player.name == null) {
+                            hasEmpty = true;
+                            break;
+                        }
+                    }
+                    if(hasEmpty) {
+                        activity.showToast("There are still a few empty seats.", 3000);
+                    }
+                    else {
+                        btnStart.setVisibility(GONE);
+                        Message msg = new Message(ServerInterface.RequestType.StartGame);
+                        GameClient.SendMessage(msg);
+                    }
                 }
             });
         }
@@ -116,7 +129,6 @@ public class GamePlayingView extends LinearLayout {
         GameClient.AddListener(ServerInterface.ResponseType.GameStart, new GameClient.OnMessageListener() {
             @Override
             public void onReceivedMessage(Message msg) {
-                btnStart.setVisibility(GONE);
                 textState.setText("Game Start");
                 try {
                     updateRoleInformation(msg.jsonObj.getJSONArray("roles"));
