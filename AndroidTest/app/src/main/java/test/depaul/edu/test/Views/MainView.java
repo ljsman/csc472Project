@@ -2,7 +2,9 @@ package test.depaul.edu.test.Views;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -25,6 +27,13 @@ public class MainView extends LinearLayout {
     }
 
     public void initialize(MainActivity act) {
+        setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return true;
+            }
+        });
+
         activity = act;
 
         Button btnCreate = findViewById(R.id.btnCreateGame);
@@ -44,9 +53,11 @@ public class MainView extends LinearLayout {
         btnJoin.setOnClickListener(new View.OnClickListener()
         {
             @Override
-            public void onClick(View view)
-            {
-
+            public void onClick(View view) {
+                LayoutInflater vi = activity.getLayoutInflater();
+                JoinGameView joinView = (JoinGameView)vi.inflate(R.layout.join_game_view, null);
+                joinView.initialize(activity);
+                activity.pushView(joinView);
             }
         });
     }

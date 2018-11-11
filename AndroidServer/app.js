@@ -201,7 +201,7 @@ addHandler(4, (identifier, msg, sock) => {
 	}
 	else {
 		const game = games[msg.game_id]
-		if(game && game.getCurrentCount() < game.config.total_count-1) {
+		if(game && game.getCurrentCount() < game.config.total_count) {
 			game.addPlayer(identifier, msg)
 		}
 		else {
@@ -226,6 +226,38 @@ addHandler(5, (identifier) => {
 	if(users[identifier] && users[identifier].game_id != -1) {
 		console.log("exitGame: " + identifier + " exit game id: " + users[identifier].game_id)
 		games[users[identifier].game_id].removePlayer(identifier)
+	}
+})
+
+addHandler(6, (identifier, msg) => {
+	if(users[identifier] && users[identifier].game_id != -1) {
+		console.log("werewolf kill: " + msg.target)
+		games[users[identifier].game_id].process(identifier, msg)
+	}
+})
+
+addHandler(7, (identifier, msg) => {
+	if(users[identifier] && users[identifier].game_id != -1) {
+		games[users[identifier].game_id].process(identifier, msg)
+	}
+})
+
+addHandler(8, (identifier, msg) => {
+	if(users[identifier] && users[identifier].game_id != -1) {
+		console.log("vote to kill: " + msg.target)
+		games[users[identifier].game_id].process(identifier, msg)
+	}
+})
+
+/* type 9, startGame
+	{
+		...
+	}
+*/ 
+addHandler(9, (identifier) => {
+	if(users[identifier] && users[identifier].game_id != -1) {
+		console.log("start game id: " + users[identifier].game_id)
+		games[users[identifier].game_id].startGame()
 	}
 })
 
@@ -310,7 +342,7 @@ Game.prototype.addPlayer = function(iden, req) {
 			identifier: iden
 		}
 		users[iden].game_id = this.config.game_id
-		this.sendGameInformation(iden, req)
+		this.sendGameInformation(iden, req, pos)
 		this.notifyPlayersChanged(iden)
 	}
 	else {
@@ -349,8 +381,9 @@ Game.prototype.broadcast = function(type, msg, except) {
 	players: {...}
 }
 */ 
-Game.prototype.sendGameInformation = function(iden, req) {
+Game.prototype.sendGameInformation = function(iden, req, pos) {
 	const msg = {
+		position: pos,
 		config: this.config,
 		players: this.getPlayersInformation()
 	}
@@ -396,9 +429,8 @@ Game.prototype.getRolesInformation = function() {
 	return this.players.map((item, index) => {
 		if(item === null) return null
 		else {
-			const user = users[item.identifier]
 			return {
-				role: user.role
+				role: item.role
 			}
 		}
 	})
@@ -408,9 +440,8 @@ Game.prototype.getPlayersStatus = function() {
 	return this.players.map((item, index) => {
 		if(item === null) return null
 		else {
-			const user = users[item.identifier]
 			return {
-				status: user.status
+				status: item.status
 			}
 		}
 	})
@@ -427,6 +458,7 @@ Game.prototype.getPlayersStatus = function() {
 }
 */ 
 Game.prototype.startGame = function() {
+	this.status = 1;
 	// random roles 
 	let roles = []
 	for(let i=0; i<this.config.werewolf_count; i++) roles.push(0b1)
@@ -437,12 +469,13 @@ Game.prototype.startGame = function() {
 		roles.push(0b100)
 	}
 
-	shuffleArray(roles)
+	//shuffleArray(roles)
 	for (let i = roles.length - 1; i >= 0; i--) {
 		this.players[i].role = roles[i]
+		this.players[i].status = 0
 	}
 	// create phases TODO: hardcode
-	this.phases = [2,3,1,4,1]
+	this.phases = [2,1,4,1]
 
 	// send to clients and start game
 	const msg = {
@@ -450,24 +483,24 @@ Game.prototype.startGame = function() {
 	}
 	this.broadcast(103, msg)
 	this.currentPhase = -1
-	this.gotoNextPhase()
+
+	const self = this
+	setTimeout(() => {
+		self.gotoNextPhase()
+	}, 5000)
 }
 
 Game.prototype.checkGameStatus = function() {
 	let hasWolfwere = false
 	let hasHuman = false
-	for(let i=0; i<this.players.length; i++) {
-		if(this.players[i].status === 0) {
-			if(this.players[i].role === 0b1) {
-				if(hasWolfwere === false) hasWolfwere = true
-			}
-			else {
-				if(hasHuman === false) hasHuman = true
-			}
+	this.players.forEach((player)=> {
+		if(player.status === 0) {
+			if(player.role === 0b1) hasWolfwere = true
+			else hasHuman = true
 		}
-	}
+	})
 	if(hasWolfwere === false) this.endGame(1)
-	if(hasHuman === false) this.endGame(0)
+	else if(hasHuman === false) this.endGame(0)
 }
 
 /* return type 104
@@ -576,7 +609,7 @@ phaseHandlers[3] = {
 }
 
 // phase 4: discussion
-phaseHandlers[3] = {
+phaseHandlers[4] = {
 	/* return type 107
 	{
 		leader: 0,	// player position
@@ -617,5 +650,9 @@ phaseHandlers[3] = {
 			playersStatus: game.getPlayersStatus()
 		}
 		game.broadcast(108, res)
+
+		setTimeout(()=> {
+			game.gotoNextPhase()
+		}, 3000)
 	}
 }

@@ -4,10 +4,13 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import test.depaul.edu.test.Views.MainView;
 
@@ -40,106 +43,6 @@ public class MainActivity extends AppCompatActivity {
                 GameClient.SendMessage(msg);
             }
         });
-
-
-        /*
-        Button btnStart = findViewById(R.id.btnStart);
-        btnStart.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                GameClient.Connect();
-            }
-        });
-
-        Button btnTeardown = findViewById(R.id.btnTeardown);
-        btnTeardown.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                GameClient.Disconnect();
-            }
-        });
-
-        Button btnRegister = findViewById(R.id.btnRegister);
-        btnRegister.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                Message msg = new Message(ServerInterface.RequestType.RegisterUser);
-                msg.addParam("name", "Jason");
-                msg.addParam("avatar", 5);
-                GameClient.SendMessage(msg);
-            }
-        });
-
-        Button btnCreateGame = findViewById(R.id.btnCreateGame);
-        btnCreateGame.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                Message msg = new Message(ServerInterface.RequestType.CreateGame);
-                msg.addParam("game_name", "game1");
-                msg.addParam("werewolf_count", 2);
-                msg.addParam("villager_count", 5);
-                msg.addParam("other_roles", 0);
-                GameClient.SendMessage(msg);
-            }
-        });
-
-        Button btnGetGameList = findViewById(R.id.btnGetGameList);
-        btnGetGameList.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                // send a request and wait for response
-                Message msg = new Message(ServerInterface.RequestType.GetGamesList);
-                GameClient.SendMessage(msg, new GameClient.OnMessageListener() {
-                    @Override
-                    public void onReceivedMessage(Message msg) {
-                        Log.v("MainActivity", "get gamelist: "+msg.getJSONString());
-                    }
-                });
-            }
-        });
-
-        Button btnJoinGame = findViewById(R.id.btnJoinGame);
-        btnJoinGame.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                Message msg = new Message(ServerInterface.RequestType.JoinGame);
-                msg.addParam("game_id", 1);
-                GameClient.SendMessage(msg);
-            }
-        });
-
-        Button btnExitGame = findViewById(R.id.btnExitGame);
-        btnExitGame.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                Message msg = new Message(ServerInterface.RequestType.ExitGame);
-                GameClient.SendMessage(msg);
-            }
-        });
-
-
-        // add listener
-        GameClient.AddListener(ServerInterface.ResponseType.UpdatePlayersInformation, new GameClient.OnMessageListener() {
-            @Override
-            public void onReceivedMessage(Message msg) {
-                Log.v("MainActivity", "get players list: "+msg.getJSONString());
-            }
-        });
-        */
     }
 
     @Override
@@ -153,12 +56,18 @@ public class MainActivity extends AppCompatActivity {
         if(loadingView == null) {
             LayoutInflater vi = getLayoutInflater();
             loadingView = vi.inflate(R.layout.loading_view, null);
+            loadingView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    return true;
+                }
+            });
         }
         this.pushView(loadingView);
     }
 
     public void hideLoading() {
-        this.popView();
+        if(loadingView.getParent() != null) frameLayout.removeView(loadingView);
     }
 
     public void pushView(View view) {
@@ -167,5 +76,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void popView() {
         frameLayout.removeViewAt(frameLayout.getChildCount()-1);
+    }
+
+    public void showToast(String text, int duration) {
+        Toast toast = Toast.makeText(this, text, duration);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
     }
 }
