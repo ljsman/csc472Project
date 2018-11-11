@@ -314,8 +314,9 @@ function Game(game_id, identifier, msg) {
 		other_roles: msg.other_roles,
 	}
 	this.config.creator = identifier
-	//TODO calculate other roles
-	const totalCount = msg.werewolf_count + msg.villager_count
+	//TODO hardcode otherrole's count
+	let totalCount = msg.werewolf_count + msg.villager_count
+	if(msg.other_roles > 0) totalCount += 1
 	this.config.total_count = totalCount
 
 	this.status = 0
@@ -475,7 +476,12 @@ Game.prototype.startGame = function() {
 		this.players[i].status = 0
 	}
 	// create phases TODO: hardcode
-	this.phases = [2,1,4,1]
+	if(others > 0) {
+		this.phases = [2,3,1,4,1]
+	}
+	else {
+		this.phases = [2,1,4,1]
+	}
 
 	// send to clients and start game
 	const msg = {

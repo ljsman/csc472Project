@@ -1,6 +1,8 @@
 package test.depaul.edu.test.Views;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -156,6 +158,7 @@ public class GamePlayingView extends LinearLayout {
                 else {
                     textState.setText("Human win!!!");
                 }
+                btnExit.setVisibility(VISIBLE);
             }
         });
 
@@ -188,7 +191,6 @@ public class GamePlayingView extends LinearLayout {
                             GameClient.SendMessage(msg);
                         }
                     });
-
                     activity.pushView(chooseTargetView);
                 }
             }
@@ -197,7 +199,41 @@ public class GamePlayingView extends LinearLayout {
         GameClient.AddListener(ServerInterface.ResponseType.SeerTurn, new GameClient.OnMessageListener() {
             @Override
             public void onReceivedMessage(Message msg) {
+                // check at client side
+                if(playerList.get(myPosition).role == Player.RoleType.Seer) {
+                    LayoutInflater vi = activity.getLayoutInflater();
+                    final ChooseTargetView chooseTargetView = (ChooseTargetView)vi.inflate(R.layout.choose_target_view, null);
+                    chooseTargetView.initialize(getAlivePlayers());
 
+                    Button btnChoose = chooseTargetView.findViewById(R.id.btnChoose);
+                    btnChoose.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            activity.popView();
+
+                            AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
+                            alertDialog.setTitle("Result");
+                            int playerIdx = chooseTargetView.getSelectedPosition();
+                            if(playerList.get(playerIdx).role == Player.RoleType.Werewolf) {
+                                alertDialog.setMessage("Yes, player "+playerIdx+" is werewolf!");
+                            }
+                            else {
+                                alertDialog.setMessage("No, player "+playerIdx+" is human!");
+                            }
+
+                            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                            Message msg = new Message(ServerInterface.RequestType.SeerTurnFinished);
+                                            GameClient.SendMessage(msg);
+                                        }
+                                    });
+                            alertDialog.show();
+                        }
+                    });
+                    activity.pushView(chooseTargetView);
+                }
             }
         });
 

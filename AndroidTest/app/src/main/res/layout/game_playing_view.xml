@@ -43,7 +43,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/btnExit"
-        android:text="Exit Game"/>
+        android:text="Exit Game"
+        android:visibility="gone"/>
 
 
 

@@ -49,8 +49,8 @@ public class CreateGameView extends LinearLayout {
                 Message msg = new Message(ServerInterface.RequestType.CreateGame);
                 msg.addParam("game_name", "test game");
                 msg.addParam("werewolf_count", 1);
-                msg.addParam("villager_count", 2);
-                msg.addParam("other_roles", 0);
+                msg.addParam("villager_count", 1);
+                msg.addParam("other_roles", 0b100);
                 GameClient.SendMessage(msg, new GameClient.OnMessageListener() {
                     @Override
                     public void onReceivedMessage(Message msg) {
