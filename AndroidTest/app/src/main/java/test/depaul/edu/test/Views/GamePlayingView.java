@@ -186,7 +186,7 @@ public class GamePlayingView extends LinearLayout {
                     btnChoose.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            if(chooseTargetView.getSelectedPosition() == -1) activity.showToast("You must choose someone.". 1500);
+                            if(chooseTargetView.getSelectedPosition() == -1) activity.showToast("You must choose someone.", 1500);
                             else {
                                 activity.popView();
                                 Message msg = new Message(ServerInterface.RequestType.WerewolfChooseToKill);
@@ -213,7 +213,7 @@ public class GamePlayingView extends LinearLayout {
                     btnChoose.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            if(chooseTargetView.getSelectedPosition() == -1) activity.showToast("You must choose someone.". 1500);
+                            if(chooseTargetView.getSelectedPosition() == -1) activity.showToast("You must choose someone.", 1500);
                             else {
                                 activity.popView();
 
@@ -275,7 +275,7 @@ public class GamePlayingView extends LinearLayout {
                     btnChoose.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            if(chooseTargetView.getSelectedPosition() == -1) activity.showToast("You must choose someone.". 1500);
+                            if(chooseTargetView.getSelectedPosition() == -1) activity.showToast("You must choose someone.", 1500);
                             else {
                                 activity.popView();
                                 Message msg = new Message(ServerInterface.RequestType.VoteToKill);
