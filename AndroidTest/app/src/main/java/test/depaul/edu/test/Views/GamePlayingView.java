@@ -108,6 +108,8 @@ public class GamePlayingView extends LinearLayout {
             @Override
             public void onClick(View view)
             {
+                Message msg = new Message(ServerInterface.RequestType.ExitGame);
+                GameClient.SendMessage(msg);
                 GameClient.RemoveAllListner();
                 activity.popView();
             }
@@ -184,11 +186,13 @@ public class GamePlayingView extends LinearLayout {
                     btnChoose.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            activity.popView();
-
-                            Message msg = new Message(ServerInterface.RequestType.WerewolfChooseToKill);
-                            msg.addParam("target", chooseTargetView.getSelectedPosition());
-                            GameClient.SendMessage(msg);
+                            if(chooseTargetView.getSelectedPosition() == -1) activity.showToast("You must choose someone.". 1500);
+                            else {
+                                activity.popView();
+                                Message msg = new Message(ServerInterface.RequestType.WerewolfChooseToKill);
+                                msg.addParam("target", chooseTargetView.getSelectedPosition());
+                                GameClient.SendMessage(msg);
+                            }
                         }
                     });
                     activity.pushView(chooseTargetView);
@@ -209,27 +213,29 @@ public class GamePlayingView extends LinearLayout {
                     btnChoose.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            activity.popView();
-
-                            AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
-                            alertDialog.setTitle("Result");
-                            int playerIdx = chooseTargetView.getSelectedPosition();
-                            if(playerList.get(playerIdx).role == Player.RoleType.Werewolf) {
-                                alertDialog.setMessage("Yes, player "+playerIdx+" is werewolf!");
-                            }
+                            if(chooseTargetView.getSelectedPosition() == -1) activity.showToast("You must choose someone.". 1500);
                             else {
-                                alertDialog.setMessage("No, player "+playerIdx+" is human!");
-                            }
+                                activity.popView();
 
-                            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
-                                            Message msg = new Message(ServerInterface.RequestType.SeerTurnFinished);
-                                            GameClient.SendMessage(msg);
-                                        }
-                                    });
-                            alertDialog.show();
+                                AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
+                                alertDialog.setTitle("Result");
+                                int playerIdx = chooseTargetView.getSelectedPosition();
+                                if (playerList.get(playerIdx).role == Player.RoleType.Werewolf) {
+                                    alertDialog.setMessage("Yes, player " + playerIdx + " is werewolf!");
+                                } else {
+                                    alertDialog.setMessage("No, player " + playerIdx + " is human!");
+                                }
+
+                                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                                Message msg = new Message(ServerInterface.RequestType.SeerTurnFinished);
+                                                GameClient.SendMessage(msg);
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
                         }
                     });
                     activity.pushView(chooseTargetView);
@@ -269,10 +275,13 @@ public class GamePlayingView extends LinearLayout {
                     btnChoose.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            activity.popView();
-                            Message msg = new Message(ServerInterface.RequestType.VoteToKill);
-                            msg.addParam("target", chooseTargetView.getSelectedPosition());
-                            GameClient.SendMessage(msg);
+                            if(chooseTargetView.getSelectedPosition() == -1) activity.showToast("You must choose someone.". 1500);
+                            else {
+                                activity.popView();
+                                Message msg = new Message(ServerInterface.RequestType.VoteToKill);
+                                msg.addParam("target", chooseTargetView.getSelectedPosition());
+                                GameClient.SendMessage(msg);
+                            }
                         }
                     });
 
