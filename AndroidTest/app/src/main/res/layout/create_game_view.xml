@@ -6,6 +6,83 @@
     android:orientation="vertical"
     android:background="@color/colorBackground">
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Werewolf:"
+            android:textSize="24dp"
+            android:paddingHorizontal="12dp"/>
+
+        <Button
+            android:id="@+id/btnWerewolfMinus"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="-"/>
+
+        <TextView
+            android:id="@+id/textWerewolf"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1"
+            android:textSize="24dp"
+            android:paddingHorizontal="12dp"/>
+
+        <Button
+            android:id="@+id/btnWerewolfPlus"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="+"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Villager:"
+            android:textSize="24dp"
+            android:paddingHorizontal="12dp"/>
+
+        <Button
+            android:id="@+id/btnVillagerMinus"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="-"/>
+
+        <TextView
+            android:id="@+id/textVillager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1"
+            android:textSize="24dp"
+            android:paddingHorizontal="12dp"/>
+
+        <Button
+            android:id="@+id/btnVillagerPlus"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="+"/>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnSeer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/colorBlue"
+        android:text="Seer" />
+
+
     <Button
         android:id="@+id/btnCreateGame"
         android:layout_width="wrap_content"
